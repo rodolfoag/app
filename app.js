@@ -51,7 +51,7 @@ var App = (function (){
   // Dispatch an module by a router name (inspired by @eshiota - RubyConf 2013)
   // route format: controller#action
   // transleted to: Controller.Action
-  app.dispatchRouter = function (route) {
+  app.dispatchRoute = function (route) {
     var parts = route.split('#')
       , namespace = '';
     
