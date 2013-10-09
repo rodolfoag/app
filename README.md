@@ -14,7 +14,7 @@ Using App.js
 
 Create modules using App namespace, and run them as you need.
 
-Defining a new module ( init() method gets executed when you run the module ).
+Defining a new module.
 
 ```javascript
 App.namespace('Clients.Index', (function () {
@@ -24,9 +24,22 @@ App.namespace('Clients.Index', (function () {
     $('h3 i').html('App.Clients.Index')
   }
 
+  // public
   return {
     init: init
   }
 
 })());
+```
+
+Running a module (executes module's init() method).
+
+```javascript
+App.run('Clients.Index');
+```
+
+Dispatching a module using a route description. Same as run, but takes a route formar parameter (controller#action) and translates into a module name convention (Controller.Action). Ideal for dispatching a module associated with the page loaded (see examples for more information).
+
+```javascript
+App.dispatchRoute('clients#index')
 ```
