@@ -38,7 +38,8 @@ var App = (function (){
       , scope = this;
     
     for (var i = 0; i < parts.length; i++) {
-      scope = scope[parts[i]]
+      if (typeof scope[parts[i]] === 'undefined') return;
+      scope = scope[parts[i]];
     }
 
     if (scope && typeof scope['init'] == 'function') {
