@@ -33,7 +33,7 @@ var App = (function (){
   
   // Runs a module registered through namespace
   // Executes init() on the desired module
-  app.run = function (namespace) {
+  app.run = function (namespace, args) {
     var parts = namespace.split('.')
       , scope = this;
     
@@ -43,7 +43,7 @@ var App = (function (){
     }
 
     if (scope && typeof scope['init'] == 'function') {
-      scope.init();
+      scope.init(args);
     }
   
     return scope;
