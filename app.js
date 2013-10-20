@@ -9,14 +9,20 @@ var App = (function (){
   // App Object
   var app = {};
 
-  // Register an namespace under App
-  // Egg: App.namespace('Clients.Show')
-  app.namespace = function (namespace, object) {
-    var parts = namespace.split('.')
-      , scope = this;
+  // From Mozilla MDN  
+  // isArray - checks browse compatibility: =( ie7, ie8...
+  if( ! Array.isArray ) {
+    Array.isArray = function (vArg) {
+      return Object.prototype.toString.call(vArg) === "[object Array]";
+    };
+  }
+
+  // ns - creates the module
+  function ns(scope, namespace, object) {
+    var parts = namespace.split('.');
     
     for ( var i = 0; i < parts.length; i++ ) {
-      if ( i == parts.length - 1 ) {
+      if ( i === parts.length - 1 ) {
         scope[parts[i]] = object;
       } else {
         // create property if it doesn't exist
@@ -31,6 +37,25 @@ var App = (function (){
     return scope;
   }
   
+  // Register namespaces under App
+  // Egg: App.namespace('Clients.Show')
+  //      or using an Array
+  //      App.namespace(['Clients.New', 'Clients.Create']) 
+  app.namespace = function (namespace, object) {
+    var module;
+    
+    if (Array.isArray(namespace)) {
+      module = [];
+      for ( var i = 0; i < namespace.length; i++ ) {
+        module.push( ns(this, namespace[i], object) );
+      }
+    } else {
+      module = ns(this, namespace, object);
+    }
+    
+    return module;
+  }
+  
   // Runs a module registered through namespace
   // Executes init() on the desired module
   app.run = function (namespace, args) {
@@ -42,7 +67,7 @@ var App = (function (){
       scope = scope[parts[i]];
     }
 
-    if (scope && typeof scope['init'] == 'function') {
+    if (scope && typeof scope['init'] === 'function') {
       scope.init(args);
     }
   
@@ -65,7 +90,7 @@ var App = (function (){
         module += parts_aux[j]
       }
       
-      namespace += (namespace == '') ? module : '.' + module
+      namespace += (namespace === '') ? module : '.' + module
     }
     
     return this.run(namespace);
