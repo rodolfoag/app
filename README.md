@@ -1,7 +1,7 @@
 App.js
 ======
 
-Javascript Module Pattern implementation to organize your code and execution flow using Namespaces.
+Module Pattern implementation to organize your javascript code and execution flow using Namespaces.
 
 ## The Problem
 
