@@ -30,6 +30,24 @@ App.namespace('Clients.Index', (function () {
 })());
 ```
 
+Or you could also use an Array to create modules with similar behaviors, for instance, you might have a clients#new action that posts to a clients#create action, and both actions render the same view.
+
+```javascript
+App.namespace(['Clients.New', 'Clients.Create'], (function () {
+
+  // private
+  function init() {
+    do_something();
+  }
+
+  // public
+  return {
+    init: init
+  }
+
+})());
+```
+
 Running a module (executes module's init() method).
 
 ```javascript
