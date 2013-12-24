@@ -6,8 +6,8 @@
 var App = (function (){
   "use strict";
   
-  // App Object
-  var app = {};
+  var app = {}
+    , scheduleEntries = [];
 
   // From Mozilla MDN  
   // isArray - checks browse compatibility: =( ie7, ie8...
@@ -35,7 +35,7 @@ var App = (function (){
     }
     
     return scope;
-  }
+  };
   
   // Register namespaces under App
   // Egg: App.namespace('Clients.Show')
@@ -54,7 +54,7 @@ var App = (function (){
     }
     
     return module;
-  }
+  };
   
   // Runs a module registered through namespace
   // Executes init() on the desired module
@@ -72,7 +72,7 @@ var App = (function (){
     }
   
     return scope;
-  }
+  };
   
   // Dispatch an module by a router name (inspired by @eshiota - RubyConf 2013)
   // route format: controller#action
@@ -94,7 +94,22 @@ var App = (function (){
     }
     
     return this.run(namespace);
-  }
+  };
+  
+  // Adds a module namespace to a schedule list to further execution
+  app.schedule = function (namespace) {
+    scheduleEntries.push(namespace);
+  };
+  
+  // Runs a schedule and clean the schedule entries array
+  app.runSchedule = function () {
+    scheduleEntries.forEach(function (val) {
+      app.run(val);
+    });
+    
+    // empty the entries array
+    scheduleEntries.length = 0;
+  };
   
   return app;
 })();
