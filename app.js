@@ -1,115 +1,101 @@
-// App.js
+// app.js
 // Author: Rodolfo Goncalves (http://github.com/rodolfoag)
-// A simple implementation of Javascript Module Pattern;
-// Allows to easily register and execute modules using nested namespaces;
-// Inspired by @shiota's speech on RubyConfBrazil 2013;
-var App = (function (){
+var app = (function (root) {
   "use strict";
-  
-  var app = {}
-    , scheduleEntries = [];
 
-  // From Mozilla MDN  
-  // isArray - checks browse compatibility: =( ie7, ie8...
-  if( ! Array.isArray ) {
-    Array.isArray = function (vArg) {
-      return Object.prototype.toString.call(vArg) === "[object Array]";
-    };
-  }
+  // Module Exported
+  var module = {};
 
-  // ns - creates the module
-  function ns(scope, namespace, object) {
-    var parts = namespace.split('.');
-    
-    for ( var i = 0; i < parts.length; i++ ) {
-      if ( i === parts.length - 1 ) {
-        scope[parts[i]] = object;
+  // Private
+  function set_ns (root_scope, namespace, object) {
+    var parts = namespace.split('.'),
+        scope = root_scope,
+        name;
+
+    for ( var i = 0, n = parts.length; i < n; i++ ) {
+      name = parts[i];
+
+      if ( i === n - 1 ) {
+        if (get_ns(scope, name)) {
+          throw 'Namespace ' + namespace + ' already defined.';
+        }
+        scope[name] = object;
       } else {
         // create property if it doesn't exist
-        if ( typeof scope[parts[i]] === 'undefined' ) {
-          scope[parts[i]] = {};
+        if ( typeof scope[name] === 'undefined' ) {
+          scope[name] = {};
+        } else if ( typeof scope[name] !== 'object' ) {
+          throw 'Namespace ' + namespace.split('.', i + 1).join('.') + ' is not an object.';
         }
       }
-      
-      scope = scope[parts[i]];
+
+      scope = scope[name];
     }
-    
+
     return scope;
-  };
-  
-  // Register namespaces under App
-  // Egg: App.namespace('Clients.Show')
-  //      or using an Array
-  //      App.namespace(['Clients.New', 'Clients.Create']) 
-  app.namespace = function (namespace, object) {
-    var module;
-    
-    if (Array.isArray(namespace)) {
-      module = [];
-      for ( var i = 0; i < namespace.length; i++ ) {
-        module.push( ns(this, namespace[i], object) );
+  }
+
+  function get_ns (root_scope, namespace) {
+    var parts = namespace.split('.'),
+        scope = root_scope,
+        name;
+
+    for (var i = 0, n = parts.length; i < n; i++) {
+      name = parts[i];
+
+      if (typeof scope[name] === 'undefined') {
+        return;
       }
+
+      scope = scope[name];
+    }
+
+    return scope;
+  }
+
+  // Public
+  module.namespace = function (namespace, object) {
+    return set_ns(this, namespace, object);
+  };
+
+  module.route = function (namespace, fn) {
+    if (typeof fn !== 'function') {
+      throw 'Object ' + fn + 'is not a function.';
+    }
+
+    return set_ns(this, 'routes.' + namespace, fn);
+  };
+
+  module.dispatch_route = function (namespace, action) {
+    var fn = get_ns(this, 'routes.' + namespace),
+        route_obj,
+        action_fn;
+
+    // Don't do anything if the route isn't defined and don't allow other
+    // than a function
+    if (typeof fn === 'undefined') {
+      return;
+    } else if (typeof fn !== 'function') {
+      throw 'Namespace ' + namespace + ' is not a function.';
+    }
+
+    // Obs.: a route should always return an object, containing properties named
+    // after actions, with a function as its value
+
+    route_obj = fn();
+
+    if (typeof route_obj !== 'object') {
+      throw 'Route ' + namespace + ' is not a valid router. Should return an object.';
     } else {
-      module = ns(this, namespace, object);
-    }
-    
-    return module;
-  };
-  
-  // Runs a module registered through namespace
-  // Executes init() on the desired module
-  app.run = function (namespace, args) {
-    var parts = namespace.split('.')
-      , scope = this;
-    
-    for (var i = 0; i < parts.length; i++) {
-      if (typeof scope[parts[i]] === 'undefined') return;
-      scope = scope[parts[i]];
-    }
+      action_fn = route_obj[action];
 
-    if (scope && typeof scope['init'] === 'function') {
-      scope.init(args);
-    }
-  
-    return scope;
-  };
-  
-  // Dispatch an module by a router name (inspired by @eshiota - RubyConf 2013)
-  // route format: controller#action
-  // transleted to: Controller.Action
-  app.dispatchRoute = function (route) {
-    var parts = route.split('#')
-      , namespace = '';
-    
-    for (var i = 0; i < parts.length; i++) {
-      var parts_aux = parts[i].split('_')
-        , module = '';
-
-      for (var j = 0; j < parts_aux.length; j++) {
-        parts_aux[j] = parts_aux[j].charAt(0).toUpperCase() + parts_aux[j].slice(1);
-        module += parts_aux[j]
+      if (typeof action_fn !== 'undefined' && typeof action_fn !== 'function') {
+        throw 'Action ' + action + ' of router ' + namespace + ' is not a function.';
+      } else if ( typeof action_fn === 'function' ) {
+        action_fn();
       }
-      
-      namespace += (namespace === '') ? module : '.' + module
     }
-    
-    return this.run(namespace);
   };
-  
-  // Adds a module namespace to a schedule list to further execution
-  app.schedule = function (namespace) {
-    scheduleEntries.push(namespace);
-  };
-  
-  // Runs a schedule and clean the schedule entries array
-  app.runSchedule = function () {
-    scheduleEntries.forEach(function (val) {
-      app.run(val);
-    });
-    
-    // empty the entries array
-    scheduleEntries.length = 0;
-  };
-  
-  return app;
-})();
+
+  return module;
+})(this);
