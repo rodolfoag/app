@@ -20,9 +20,9 @@ var bar = app.components.foo(); // bar
 A router must be a function returning an object, with functions as its properties values:
 
 ```javascript
-app.route('fo#bar', function () {
+app.route('fo', function () {
   return {
-    show: function () {
+    bar: function () {
       console.log('fo#bar show dispatched');
     }
   };
